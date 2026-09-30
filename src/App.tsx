@@ -1,7 +1,8 @@
-import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { Shell } from "./components/Shell";
+import { AuthProvider, useAuth } from "./lib/auth";
 import { StoreProvider } from "./lib/store";
-import { LoginPage, requireAuth } from "./pages/Login";
+import { LoginPage } from "./pages/Login";
 import { DashboardPage } from "./pages/Dashboard";
 import { PosPage } from "./pages/POS";
 import { QueuePage } from "./pages/Queue";
@@ -17,13 +18,15 @@ import { SettingsPage } from "./pages/Settings";
 import type { JSX } from "react";
 
 function Gate({ children }: { children: JSX.Element }) {
-  const { pathname } = useLocation();
-  if (pathname !== "/login" && !requireAuth()) return <Navigate to="/login" replace />;
+  const { user, ready, pending } = useAuth();
+  if (!ready) return <p className="loading-line">Checking access…</p>;
+  if (!user || pending) return <Navigate to="/login" replace />;
   return children;
 }
 
 export function App() {
   return (
+    <AuthProvider>
     <StoreProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
@@ -44,5 +47,6 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </StoreProvider>
+    </AuthProvider>
   );
 }

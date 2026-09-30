@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { displayName } from "../../shared/format";
 import { applyTheme, readTheme } from "../lib/theme";
+import { useAuth } from "../lib/auth";
 import { useStore } from "../lib/store";
 import { finishGuide, GuideTour, hasFinishedGuide } from "./GuideTour";
 import { PageSlide } from "./PageSlide";
@@ -49,7 +50,9 @@ const GROUPS = [
 
 export function Shell() {
   const location = useLocation();
+  const nav = useNavigate();
   const { db } = useStore();
+  const { signOut } = useAuth();
   const [theme, setTheme] = useState<"light" | "dark">(readTheme);
   const [splash, setSplash] = useState(() => {
     try { return !sessionStorage.getItem("burapesa-splash"); } catch { return true; }
@@ -154,6 +157,15 @@ export function Shell() {
               ) : null}
               <button type="button" className="help-toggle" aria-label="How to use this site" onClick={() => setGuideOpen(true)}>
                 <HelpIcon />
+              </button>
+              <button
+                type="button"
+                className="text-button sign-out"
+                onClick={() => {
+                  signOut().finally(() => nav("/login", { replace: true }));
+                }}
+              >
+                Sign out
               </button>
               <label className="theme-switch">
                 <input
