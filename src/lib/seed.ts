@@ -20,14 +20,14 @@ export function seedDB(): DB {
       { id: "pt-5", opNumber: "OP-1005", name: "Zawadi Mkenya", phone: "0701 334 882", gender: "female", dob: "2001-05-19", age: 25, idNumber: "44556677", residence: "Dagoretti", nextOfKin: "Baraka Mkenya", kinPhone: "0701 334 883", insurance: "None (Cash)", memberNo: "", allergies: "None", chronic: "None", balance: 600, createdAt: d(-2) },
     ],
     drugs: [
-      { id: "dr-1", name: "Amoxicillin 500mg", strength: "500mg", form: "Capsules ×20", category: "Antibiotic", sellPrice: 350, reorderLevel: 40, supplier: "Cosmos Ltd", batches: [{ batch: "AMX-2401", expiry: d(120), qty: 140, buyPrice: 210 }, { batch: "AMX-2311", expiry: d(38), qty: 22, buyPrice: 205 }] },
-      { id: "dr-2", name: "Paracetamol 500mg", strength: "500mg", form: "Tablets ×100", category: "Analgesic", sellPrice: 250, reorderLevel: 60, supplier: "Lab & Allied", batches: [{ batch: "PCM-2502", expiry: d(300), qty: 320, buyPrice: 140 }] },
-      { id: "dr-3", name: "ORS Sachets", strength: "27.9g", form: "Sachets ×50", category: "Rehydration", sellPrice: 300, reorderLevel: 30, supplier: "Universal Corp", batches: [{ batch: "ORS-2409", expiry: d(25), qty: 18, buyPrice: 170 }] },
-      { id: "dr-4", name: "Metformin 850mg", strength: "850mg", form: "Tablets ×60", category: "Antidiabetic", sellPrice: 480, reorderLevel: 25, supplier: "Cosmos Ltd", batches: [{ batch: "MET-2412", expiry: d(400), qty: 90, buyPrice: 300 }] },
-      { id: "dr-5", name: "Amlodipine 5mg", strength: "5mg", form: "Tablets ×30", category: "Antihypertensive", sellPrice: 320, reorderLevel: 25, supplier: "GSK Kenya", batches: [{ batch: "AML-2405", expiry: d(210), qty: 12, buyPrice: 190 }] },
-      { id: "dr-6", name: "Ventolin Inhaler", strength: "100mcg", form: "Inhaler 200 doses", category: "Respiratory", sellPrice: 950, reorderLevel: 10, supplier: "GSK Kenya", batches: [{ batch: "VEN-2403", expiry: d(500), qty: 26, buyPrice: 620 }] },
-      { id: "dr-7", name: "Ciprofloxacin 500mg", strength: "500mg", form: "Tablets ×14", category: "Antibiotic", sellPrice: 420, reorderLevel: 30, supplier: "Lab & Allied", batches: [{ batch: "CIP-2312", expiry: d(52), qty: 44, buyPrice: 260 }] },
-      { id: "dr-8", name: "Zinc 20mg + Vit A", strength: "20mg", form: "Tablets ×10 (Child)", category: "Supplement", sellPrice: 180, reorderLevel: 50, supplier: "Universal Corp", batches: [{ batch: "ZNC-2501", expiry: d(330), qty: 210, buyPrice: 95 }] },
+      { id: "dr-1", name: "Amoxicillin 500mg", strength: "500mg", form: "Capsules ×20", category: "Antibiotic", basePrice: 210, sellPrice: 350, reorderLevel: 40, supplier: "Cosmos Ltd", batches: [{ batch: "AMX-2401", manufactured: d(-280), expiry: d(120), qty: 140, buyPrice: 210 }, { batch: "AMX-2311", manufactured: d(-420), expiry: d(38), qty: 22, buyPrice: 205 }] },
+      { id: "dr-2", name: "Paracetamol 500mg", strength: "500mg", form: "Tablets ×100", category: "Analgesic", basePrice: 140, sellPrice: 250, reorderLevel: 60, supplier: "Lab & Allied", batches: [{ batch: "PCM-2502", manufactured: d(-90), expiry: d(300), qty: 320, buyPrice: 140 }] },
+      { id: "dr-3", name: "ORS Sachets", strength: "27.9g", form: "Sachets ×50", category: "Rehydration", basePrice: 170, sellPrice: 300, reorderLevel: 30, supplier: "Universal Corp", batches: [{ batch: "ORS-2409", manufactured: d(-340), expiry: d(25), qty: 18, buyPrice: 170 }] },
+      { id: "dr-4", name: "Metformin 850mg", strength: "850mg", form: "Tablets ×60", category: "Antidiabetic", basePrice: 300, sellPrice: 480, reorderLevel: 25, supplier: "Cosmos Ltd", batches: [{ batch: "MET-2412", manufactured: d(-60), expiry: d(400), qty: 90, buyPrice: 300 }] },
+      { id: "dr-5", name: "Amlodipine 5mg", strength: "5mg", form: "Tablets ×30", category: "Antihypertensive", basePrice: 190, sellPrice: 320, reorderLevel: 25, supplier: "GSK Kenya", batches: [{ batch: "AML-2405", manufactured: d(-200), expiry: d(210), qty: 12, buyPrice: 190 }] },
+      { id: "dr-6", name: "Ventolin Inhaler", strength: "100mcg", form: "Inhaler 200 doses", category: "Respiratory", basePrice: 620, sellPrice: 950, reorderLevel: 10, supplier: "GSK Kenya", batches: [{ batch: "VEN-2403", manufactured: d(-150), expiry: d(500), qty: 26, buyPrice: 620 }] },
+      { id: "dr-7", name: "Ciprofloxacin 500mg", strength: "500mg", form: "Tablets ×14", category: "Antibiotic", basePrice: 260, sellPrice: 420, reorderLevel: 30, supplier: "Lab & Allied", batches: [{ batch: "CIP-2312", manufactured: d(-310), expiry: d(52), qty: 44, buyPrice: 260 }] },
+      { id: "dr-8", name: "Zinc 20mg + Vit A", strength: "20mg", form: "Tablets ×10 (Child)", category: "Supplement", basePrice: 95, sellPrice: 180, reorderLevel: 50, supplier: "Universal Corp", batches: [{ batch: "ZNC-2501", manufactured: d(-40), expiry: d(330), qty: 210, buyPrice: 95 }] },
     ],
     services: [
       { id: "sv-1", name: "General Consultation — Adult", category: "consultation", price: 800 },
@@ -64,8 +64,8 @@ export function seedDB(): DB {
       { id: "lo-3", visitId: "vs-4", patientId: "pt-4", testId: "lb-4", testName: "HbA1c (Diabetes)", price: 1500, result: "7.1% — fair control", done: true, date: d(-1) },
     ],
     sales: [
-      { id: "sa-1", receiptNo: "RCT-000121", date: d(-1), time: "15:02", patientId: "pt-4", patientName: "Daniel Kiprop", walkIn: false, lines: [{ key: "sv-1", kind: "service", refId: "sv-1", name: "General Consultation — Adult", qty: 1, price: 800 }, { key: "lb-4", kind: "lab", refId: "lb-4", name: "HbA1c (Diabetes)", qty: 1, price: 1500 }, { key: "dr-4", kind: "drug", refId: "dr-4", name: "Metformin 850mg", qty: 1, price: 480 }], subtotal: 2780, discount: 0, total: 2780, payments: [{ method: "mpesa", amount: 2780, ref: "QK7X2AB11D" }], cashier: "Reception — Faith", etimsCu: "CU-88213-01" },
-      { id: "sa-2", receiptNo: "RCT-000122", date: d(0), time: "09:44", patientId: null, patientName: "Walk-in", walkIn: true, lines: [{ key: "dr-2", kind: "drug", refId: "dr-2", name: "Paracetamol 500mg", qty: 2, price: 250 }], subtotal: 500, discount: 0, total: 500, payments: [{ method: "cash", amount: 500, ref: "" }], cashier: "Pharmacy — Brian", etimsCu: "CU-88213-02" },
+      { id: "sa-1", receiptNo: "RCT-000121", date: d(-1), time: "15:02", patientId: "pt-4", patientName: "Daniel Kiprop", walkIn: false, lines: [{ key: "sv-1", kind: "service", refId: "sv-1", name: "General Consultation — Adult", qty: 1, basePrice: 800, price: 800 }, { key: "lb-4", kind: "lab", refId: "lb-4", name: "HbA1c (Diabetes)", qty: 1, basePrice: 1500, price: 1500 }, { key: "dr-4", kind: "drug", refId: "dr-4", name: "Metformin 850mg", qty: 1, basePrice: 300, price: 480 }], subtotal: 2780, discount: 0, total: 2780, payments: [{ method: "mpesa", amount: 2780, ref: "QK7X2AB11D" }], cashier: "Reception — Faith", etimsCu: "CU-88213-01" },
+      { id: "sa-2", receiptNo: "RCT-000122", date: d(0), time: "09:44", patientId: null, patientName: "Walk-in", walkIn: true, lines: [{ key: "dr-2", kind: "drug", refId: "dr-2", name: "Paracetamol 500mg", qty: 2, basePrice: 140, price: 250 }], subtotal: 500, discount: 0, total: 500, payments: [{ method: "cash", amount: 500, ref: "" }], cashier: "Pharmacy — Brian", etimsCu: "CU-88213-02" },
     ],
     expenses: [
       { id: "ex-1", reason: "Gloves + syringes restock", amount: 8400, category: "Consumables", spentOn: d(-3), by: "Admin" },
@@ -96,6 +96,7 @@ export function seedDB(): DB {
       shaEnabled: true,
     },
     receiptSeq: 123,
+    reports: [],
   };
 }
 

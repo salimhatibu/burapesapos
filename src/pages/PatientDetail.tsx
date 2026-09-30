@@ -1,6 +1,7 @@
 import { Link, useParams } from "react-router-dom";
 import { formatMoney } from "../../shared/format";
 import { useStore } from "../lib/store";
+import { printPatientInvoice } from "../lib/documents";
 import { PageHeader, Panel, Pill, Empty } from "../components/ui";
 
 export function PatientDetailPage() {
@@ -16,6 +17,7 @@ export function PatientDetailPage() {
   return (
     <>
       <PageHeader kicker={`${p.opNumber} · ${p.gender} · ${p.age}y`} title={p.name} lead={`${p.phone} · ${p.residence} · Cover: ${p.insurance} ${p.memberNo} · Allergies: ${p.allergies || "none"}`}>
+        <button type="button" className="solid" onClick={() => printPatientInvoice(db, p)}>Invoice</button>
         <Link className="ghost" to="/patients">← All patients</Link>
       </PageHeader>
       <div className="board">

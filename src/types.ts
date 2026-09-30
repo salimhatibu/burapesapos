@@ -24,6 +24,7 @@ export type Patient = {
 
 export type DrugBatch = {
   batch: string;
+  manufactured: string;
   expiry: string;
   qty: number;
   buyPrice: number;
@@ -35,6 +36,7 @@ export type Drug = {
   strength: string;
   form: string; // tablets, syrup, injection…
   category: string;
+  basePrice: number;
   sellPrice: number;
   reorderLevel: number;
   batches: DrugBatch[];
@@ -100,6 +102,7 @@ export type CartLine = {
   refId: string;
   name: string;
   qty: number;
+  basePrice: number;
   price: number;
 };
 
@@ -159,6 +162,18 @@ export type Settings = {
   shaEnabled: boolean;
 };
 
+export type SavedReport = {
+  id: string;
+  createdAt: string;
+  title: string;
+  revenue: number;
+  expenses: number;
+  net: number;
+  patients: number;
+  visits: number;
+  sales: number;
+};
+
 export type DB = {
   patients: Patient[];
   drugs: Drug[];
@@ -173,4 +188,5 @@ export type DB = {
   suppliers: Supplier[];
   settings: Settings;
   receiptSeq: number;
+  reports: SavedReport[];
 };

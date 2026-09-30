@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { formatMoney, uid } from "../../shared/format";
-import { useStore, drugStock } from "../lib/store";
+import { useStore, drugBase, drugStock } from "../lib/store";
 import { d, t } from "../lib/seed";
 import type { CartLine, PayMethod, Sale } from "../types";
 import { Field, Notice, PageHeader, Panel, Pill } from "../components/ui";
@@ -29,25 +29,26 @@ export function PosPage() {
 
   const catalog = useMemo(() => {
     const s = search.toLowerCase();
-    const drugs = db.drugs.filter((x) => !s || x.name.toLowerCase().includes(s)).map((x) => ({ kind: "drug" as const, id: x.id, name: x.name, sub: `${x.strength} · ${x.form} · stock ${drugStock(x)}`, price: x.sellPrice, stock: drugStock(x) }));
-    const services = db.services.filter((x) => !s || x.name.toLowerCase().includes(s)).map((x) => ({ kind: "service" as const, id: x.id, name: x.name, sub: x.category, price: x.price, stock: 9999 }));
-    const labs = db.labTests.filter((x) => !s || x.name.toLowerCase().includes(s)).map((x) => ({ kind: "lab" as const, id: x.id, name: x.name, sub: `${x.category} · ${x.tat}`, price: x.price, stock: 9999 }));
+    const drugs = db.drugs.filter((x) => !s || x.name.toLowerCase().includes(s)).map((x) => ({ kind: "drug" as const, id: x.id, name: x.name, sub: `${x.strength} · ${x.form} · stock ${drugStock(x)}`, base: drugBase(x), price: x.sellPrice, stock: drugStock(x) }));
+    const services = db.services.filter((x) => !s || x.name.toLowerCase().includes(s)).map((x) => ({ kind: "service" as const, id: x.id, name: x.name, sub: x.category, base: x.price, price: x.price, stock: 9999 }));
+    const labs = db.labTests.filter((x) => !s || x.name.toLowerCase().includes(s)).map((x) => ({ kind: "lab" as const, id: x.id, name: x.name, sub: `${x.category} · ${x.tat}`, base: x.price, price: x.price, stock: 9999 }));
     if (tab === "drugs") return drugs;
     if (tab === "services") return services;
     return labs;
   }, [db, search, tab]);
 
   const subtotal = cart.reduce((a, l) => a + l.qty * l.price, 0);
+  const profit = cart.reduce((a, l) => a + l.qty * (l.price - l.basePrice), 0);
   const total = Math.max(0, subtotal - discount);
   const paid = payments.reduce((a, p) => a + (Number(p.amount) || 0), 0);
   const due = total - paid;
 
-  function add(kind: CartLine["kind"], refId: string, name: string, price: number) {
+  function add(kind: CartLine["kind"], refId: string, name: string, basePrice: number, price: number) {
     const key = `${kind}:${refId}`;
     setCart((c) => {
       const ex = c.find((l) => l.key === key);
       if (ex) return c.map((l) => (l.key === key ? { ...l, qty: l.qty + 1 } : l));
-      return [...c, { key, kind, refId, name, qty: 1, price }];
+      return [...c, { key, kind, refId, name, qty: 1, basePrice, price }];
     });
   }
 
@@ -109,13 +110,14 @@ export function PosPage() {
           </div>
           <div className="table-wrap">
             <table>
-              <thead><tr><th>Item</th><th>Price</th><th></th></tr></thead>
+              <thead><tr><th>Item</th><th>Base</th><th>Price</th><th></th></tr></thead>
               <tbody>
                 {catalog.map((c) => (
                   <tr key={c.kind + c.id}>
                     <td data-label="Item"><strong>{c.name}</strong><br /><span style={{ color: "var(--mute)", fontSize: 13 }}>{c.sub}</span></td>
+                    <td data-label="Base">{formatMoney(c.base, sym)}</td>
                     <td data-label="Price">{formatMoney(c.price, sym)}</td>
-                    <td><div className="row-actions"><button type="button" disabled={c.stock <= 0} onClick={() => add(c.kind, c.id, c.name, c.price)}>{c.stock <= 0 ? "Out" : "+ Add"}</button></div></td>
+                    <td><div className="row-actions"><button type="button" disabled={c.stock <= 0} onClick={() => add(c.kind, c.id, c.name, c.base, c.price)}>{c.stock <= 0 ? "Out" : "+ Add"}</button></div></td>
                   </tr>
                 ))}
               </tbody>
@@ -135,7 +137,12 @@ export function PosPage() {
           {cart.length === 0 ? <p className="empty" style={{ marginTop: 12 }}>Cart is empty. Tap + Add.</p> : null}
           {cart.map((l) => (
             <div className="cart-line" key={l.key}>
-              <span><strong>{l.name}</strong><br /><span style={{ color: "var(--mute)", fontSize: 13 }}>{formatMoney(l.price, sym)} × {l.qty}</span></span>
+              <span>
+                <strong>{l.name}</strong><br />
+                <span style={{ color: "var(--mute)", fontSize: 13 }}>Base {formatMoney(l.basePrice, sym)} · profit {formatMoney((l.price - l.basePrice) * l.qty, sym)}</span>
+                <input aria-label={`Price for ${l.name}`} type="number" min={0} value={l.price} style={{ width: 96, marginTop: 6 }}
+                  onChange={(e) => setCart((c) => c.map((x) => x.key === l.key ? { ...x, price: Math.max(0, Number(e.target.value) || 0) } : x))} />
+              </span>
               <span style={{ display: "flex", gap: 6, alignItems: "center" }}>
                 <button type="button" className="qty-btn" onClick={() => setCart((c) => c.map((x) => x.key === l.key ? { ...x, qty: Math.max(1, x.qty - 1) } : x))}>−</button>
                 <strong>{l.qty}</strong>
@@ -148,6 +155,7 @@ export function PosPage() {
             <input id="pos-disc" type="number" min={0} value={discount} onChange={(e) => setDiscount(Math.max(0, Number(e.target.value) || 0))} />
           </Field>
           <div className="cart-total"><span>Total</span><span>{formatMoney(total, sym)}</span></div>
+          <p className="field-hint">Profit on this bill {formatMoney(profit, sym)}, from the price you enter minus each item’s base price.</p>
 
           <p className="kicker">Split payments</p>
           <div className="pay-grid">
@@ -205,6 +213,7 @@ export function PosPage() {
               <p style={{ display: "flex", justifyContent: "space-between" }}><span>Subtotal</span><span>{formatMoney(done.subtotal, sym)}</span></p>
               <p style={{ display: "flex", justifyContent: "space-between" }}><span>Discount</span><span>{formatMoney(done.discount, sym)}</span></p>
               <p style={{ display: "flex", justifyContent: "space-between", fontWeight: 800, fontSize: 15 }}><span>TOTAL</span><span>{formatMoney(done.total, sym)}</span></p>
+              <p style={{ display: "flex", justifyContent: "space-between" }}><span>Profit</span><span>{formatMoney(done.lines.reduce((a, l) => a + l.qty * (l.price - (l.basePrice ?? l.price)), 0), sym)}</span></p>
               {done.payments.map((p, i) => <p key={i} style={{ display: "flex", justifyContent: "space-between" }}><span>{p.method.toUpperCase()} {p.ref}</span><span>{formatMoney(p.amount, sym)}</span></p>)}
               <hr />
               <p className="r-center">eTIMS CU: {done.etimsCu}<br />Paybill {db.settings.paybill}<br />*** Asante — Get well soon ***</p>

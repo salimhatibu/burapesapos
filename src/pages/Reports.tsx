@@ -1,9 +1,24 @@
-import { formatMoney } from "../../shared/format";
+import { useState } from "react";
+import { formatMoney, uid } from "../../shared/format";
 import { useStore, drugStock } from "../lib/store";
-import { PageHeader, Panel, Pill } from "../components/ui";
+import { monthFigures, printMonthlyReport } from "../lib/documents";
+import { RingStat } from "../components/RingStat";
+import { Field, Notice, PageHeader, Panel, Pill } from "../components/ui";
+
+function ringMoney(amount: number, symbol: string) {
+  const n = (Number(amount) || 0).toLocaleString("en-KE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  return (
+    <>
+      <span className="ring-currency">{symbol}</span>
+      {n}
+    </>
+  );
+}
 
 export function ReportsPage() {
-  const { db } = useStore();
+  const { db, update } = useStore();
+  const [month, setMonth] = useState(() => new Date().toISOString().slice(0, 7));
+  const [note, setNote] = useState("");
   const sym = db.settings.currencySymbol;
   const revenue = db.sales.reduce((a, s) => a + s.total, 0);
   const discounts = db.sales.reduce((a, s) => a + s.discount, 0);
@@ -12,6 +27,8 @@ export function ReportsPage() {
   db.sales.forEach((s) => s.payments.forEach((p) => { byMethod[p.method] = (byMethod[p.method] ?? 0) + p.amount; }));
   const stockValue = db.drugs.reduce((a, d) => a + d.batches.reduce((x, b) => x + b.qty * b.buyPrice, 0), 0);
   const debtors = db.patients.filter((p) => p.balance > 0);
+  const owed = debtors.reduce((a, p) => a + p.balance, 0);
+  const flow = revenue + expenses;
 
   // daily revenue last 7 receipts
   const last = [...db.sales].slice(0, 7).reverse();
@@ -19,12 +36,60 @@ export function ReportsPage() {
 
   return (
     <>
-      <PageHeader kicker="Compliance & insight" title="Reports" lead="Daily revenue, payment mix, debtors, stock valuation and expiry — everything a clinic needs for KRA eTIMS reconciliation and SHA claims." />
-      <div className="board">
-        <article className="stat"><p className="kicker">Total revenue</p><p className="figure">{formatMoney(revenue, sym)}</p><p className="stat-note">{db.sales.length} receipts · discounts {formatMoney(discounts, sym)}</p></article>
-        <article className="stat"><p className="kicker">Total expenses</p><p className="figure">{formatMoney(expenses, sym)}</p><p className="stat-note">Net {formatMoney(revenue - expenses, sym)}</p></article>
-        <article className="stat"><p className="kicker">Stock value (cost)</p><p className="figure">{formatMoney(stockValue, sym)}</p><p className="stat-note">Across {db.drugs.length} products</p></article>
-        <article className="stat"><p className="kicker">Debtors</p><p className="figure">{formatMoney(debtors.reduce((a, p) => a + p.balance, 0), sym)}</p><p className="stat-note">{debtors.length} accounts owe</p></article>
+      <PageHeader kicker="Compliance & insight" title="Reports" lead="Daily revenue, payment mix, debtors, stock valuation and a monthly PDF in the same sage theme as the desk.">
+        <div style={{ display: "flex", gap: 8, alignItems: "end" }}>
+          <Field id="report-month" label="Month">
+            <input id="report-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
+          </Field>
+          <button type="button" className="solid" onClick={() => {
+            const ok = printMonthlyReport(db, month);
+            if (!ok) { setNote("Allow pop-ups, then choose Save as PDF in the print dialog."); return; }
+            const fig = monthFigures(db, month);
+            update((d) => {
+              d.reports.unshift({
+                id: uid("rp"),
+                createdAt: new Date().toISOString(),
+                title: `Monthly report ${month}`,
+                revenue: fig.revenue,
+                expenses: fig.spent,
+                net: fig.revenue - fig.spent,
+                patients: d.patients.length,
+                visits: fig.visits.length,
+                sales: fig.sales.length,
+              });
+              return d;
+            });
+            setNote(`Monthly report for ${month} is ready. Choose Save as PDF in the print dialog.`);
+          }}>Monthly PDF</button>
+        </div>
+      </PageHeader>
+      {note ? <Notice tone="ok">{note}</Notice> : null}
+      <div className="board board-rings">
+        <RingStat
+          label="Total revenue"
+          value={ringMoney(revenue, sym)}
+          note={`${db.sales.length} receipts · discounts ${formatMoney(discounts, sym)}`}
+          percent={flow === 0 ? 0 : Math.round((revenue / flow) * 100)}
+        />
+        <RingStat
+          label="Total expenses"
+          value={ringMoney(expenses, sym)}
+          note={`Net ${formatMoney(revenue - expenses, sym)}`}
+          percent={flow === 0 ? 0 : Math.round((expenses / flow) * 100)}
+          critical={expenses > revenue}
+        />
+        <RingStat
+          label="Stock value (cost)"
+          value={ringMoney(stockValue, sym)}
+          note={`Across ${db.drugs.length} products`}
+          percent={stockValue + revenue === 0 ? 0 : Math.round((stockValue / (stockValue + revenue)) * 100)}
+        />
+        <RingStat
+          label="Debtors"
+          value={ringMoney(owed, sym)}
+          note={`${debtors.length} accounts owe`}
+          percent={db.patients.length === 0 ? 0 : Math.round((debtors.length / db.patients.length) * 100)}
+        />
       </div>
       <div className="pos-grid">
         <Panel>
