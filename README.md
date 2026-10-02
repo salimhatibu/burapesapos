@@ -1,7 +1,6 @@
 # BuraPesa — Hospital & Clinic POS 🇰🇪
 
-A blue, medical-grade POS for Kenyan clinics & hospitals — inspired by [dPOS Clinic](https://dpos.co.ke/pos-for/clinic) and built on the **MarkazManagementSystem** shell pattern (glass pill nav, stat board, panels, guide tour, splash).
-
+A medical-grade POS for Kenyan clinics & hospitals
 **Modules:** Dashboard (live queue + ECG strip) · Till/POS (walk-in + visit billing, split Cash/M-Pesa/SHA/Insurance, eTIMS receipts) · Queue & triage vitals · Patients (OP files, balances) · Pharmacy (batch + expiry **FEFO**, 60-day radar, reorder alerts) · Lab (orders + results) · Expenses · Staff · Suppliers · Reports (revenue, payment mix, debtors, stock valuation) · Settings.
 
 ## Run locally
